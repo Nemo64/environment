@@ -1,0 +1,4 @@
+/vendor/
+
+# this is a library... no lock file required
+/composer.lock
