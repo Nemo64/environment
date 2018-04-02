@@ -1,0 +1,19 @@
+language: php
+
+matrix:
+  include:
+    - php: 7.1
+      env: dependencies=highest
+    - php: 7.0
+      env: dependencies=lowest
+
+install:
+  - if [ "$dependencies" = "highest" ]; then composer update --no-interaction; fi
+  - if [ "$dependencies" = "lowest" ]; then composer update --prefer-lowest --no-interaction; fi
+
+script:
+  - make test
+
+cache:
+  directories:
+    - $HOME/.composer/cache
