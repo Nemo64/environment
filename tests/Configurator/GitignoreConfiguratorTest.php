@@ -3,6 +3,7 @@
 namespace Nemo64\Environment\Configurator;
 
 use Composer\Composer;
+use Composer\Config;
 use Composer\IO\NullIO;
 use Composer\Repository\RepositoryManager;
 use Composer\Repository\WritableRepositoryInterface;
@@ -28,13 +29,14 @@ class GitignoreConfiguratorTest extends TestCase
     {
         try {
             $localRepository = $this->createMock(WritableRepositoryInterface::class);
-            $localRepository->method('getCanonicalPackages')->willReturn([]);
+            $localRepository->method('getCanonicalPackages')->willReturn($packages);
 
             $repositoryManager = $this->createMock(RepositoryManager::class);
             $repositoryManager->method('getLocalRepository')->willReturn($localRepository);
 
             $composer = $this->createMock(Composer::class);
             $composer->method('getRepositoryManager')->willReturn($repositoryManager);
+            $composer->method('getConfig')->willReturn(new Config(false, $this->rootDir->url()));
 
             return new ExecutionContext($composer, new NullIO(), $this->rootDir->url());
         } catch (\ReflectionException $e) {
@@ -45,6 +47,7 @@ class GitignoreConfiguratorTest extends TestCase
     protected function createConfigurationWith(string ...$rules): GitignoreConfigurator
     {
         $gitignoreConfigurator = new GitignoreConfigurator();
+        $gitignoreConfigurator->setAddLocalPackages(false);
         foreach ($rules as $rule) {
             $gitignoreConfigurator->add($rule);
         }
@@ -75,7 +78,7 @@ class GitignoreConfiguratorTest extends TestCase
 
     public function testCreateGitignore()
     {
-        $gitignoreConfigurator = new GitignoreConfigurator();
+        $gitignoreConfigurator = $this->createConfigurationWith();
         $this->assertFalse($this->rootDir->hasChildren(), "Noting done yet");
 
         $gitignoreConfigurator->configure($this->createContext());
@@ -138,5 +141,13 @@ class GitignoreConfiguratorTest extends TestCase
         $this->createFileWith('# this is some comment', 'folder1');
         $this->createAndUseConfigurationWith('folder1');
         $this->assertGitignoreContent(['# this is some comment', 'folder1']);
+    }
+
+    public function testVendorDir()
+    {
+        $configurator = $this->createConfigurationWith(/* noting */);
+        $configurator->setAddLocalPackages(true);
+        $configurator->configure($this->createContext());
+        $this->assertGitignoreContent(['/vendor']);
     }
 }
