@@ -7,7 +7,7 @@ use Composer\IO\IOInterface;
 use Nemo64\Environment\ExecutionContext;
 use Webmozart\PathUtil\Path;
 
-class GitignoreConfigurator implements ConfiguratorInterface
+class GitignoreConfigurator implements ConfiguratorInterface, \IteratorAggregate
 {
     /**
      * @var string[]
@@ -44,6 +44,13 @@ class GitignoreConfigurator implements ConfiguratorInterface
     public function addAbsolute(string $rule): void
     {
         $this->add('/' . ltrim($rule, '/'));
+    }
+
+    public function getIterator(): \Iterator
+    {
+        foreach ($this->rules as $rule) {
+            yield $rule;
+        }
     }
 
     public function configure(ExecutionContext $context): void
@@ -129,5 +136,4 @@ class GitignoreConfigurator implements ConfiguratorInterface
     {
         $this->addLocalPackages = $addLocalPackages;
     }
-
 }

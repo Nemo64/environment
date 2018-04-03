@@ -150,4 +150,10 @@ class GitignoreConfiguratorTest extends TestCase
         $configurator->configure($this->createContext());
         $this->assertGitignoreContent(['/vendor']);
     }
+
+    public function testTraversable()
+    {
+        $configurator = $this->createConfigurationWith('file1', 'file2');
+        $this->assertEquals(['file1', 'file2'], iterator_to_array($configurator));
+    }
 }
