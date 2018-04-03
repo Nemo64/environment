@@ -22,7 +22,12 @@
         "mikey179/vfsStream": "^1.6"
     },
     "extra": {
-        "class": "Nemo64\\Environment\\EnvironmentBuilder"
+        "class": "Nemo64\\Environment\\EnvironmentBuilder",
+        "nemo64/environment": {
+            "classes": [
+                "Nemo64\\Environment\\Configurator\\GitignoreConfigurator"
+            ]
+        }
     },
     "autoload": {
         "psr-4": {
