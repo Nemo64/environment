@@ -60,4 +60,4 @@ Done. Your `configure` method will be called every time you use composer. You ca
 
 ### guideline
 
-If you want your configurator to be useful, make sure it is highly adaptive. The `GitignoreConfigurator` won't remove rules you have made and even preserve comments. Therefor an outside user does not have to lead way of configuring a file that is right there. He just adds a rule and it works as expected.
+If you want your configurator to be useful, make sure it is highly adaptive. The `GitignoreConfigurator` won't remove rules you have made and even preserves comments. Therefor an outside user does not have to learn a new way of configuring a file that is right there. He just adds a rule and it works as expected.
