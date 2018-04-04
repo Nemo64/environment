@@ -25,7 +25,8 @@
         "class": "Nemo64\\Environment\\EnvironmentBuilder",
         "nemo64/environment": {
             "classes": [
-                "Nemo64\\Environment\\Configurator\\GitignoreConfigurator"
+                "Nemo64\\Environment\\Configurator\\ComposerConfigurator",
+                "Nemo64\\Environment\\Configurator\\MakefileConfigurator"
             ]
         }
     },
