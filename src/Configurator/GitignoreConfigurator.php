@@ -4,27 +4,33 @@ namespace Nemo64\Environment\Configurator;
 
 
 use Composer\IO\IOInterface;
+use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
 use Webmozart\PathUtil\Path;
 
-class GitignoreConfigurator implements ConfiguratorInterface, \IteratorAggregate
+class GitignoreConfigurator implements ConfiguratorInterface
 {
     /**
      * @var string[]
      */
     private $rules = [];
 
-    /**
-     * @var bool
-     */
-    private $addLocalPackages = true;
-
     public function getInfluences(): array
     {
-        return [];
+        return [
+            MakefileConfigurator::class
+        ];
     }
 
-    public function add(string $rule): void
+    /**
+     * This adds a line to the gitignore file.
+     * The line will be interpreted as a filename to prevent duplicates.
+     * This should mostly work even for optimizing negative expressions like !.gitkeep
+     *
+     * @param string $rule
+     * @see GitignoreConfigurator::add
+     */
+    public function addLine(string $rule): void
     {
         foreach ($this->rules as $index => $existingRule) {
             // if this exclude path is already covered by another rule ignore it
@@ -41,42 +47,27 @@ class GitignoreConfigurator implements ConfiguratorInterface, \IteratorAggregate
         $this->rules[] = $rule;
     }
 
-    public function addAbsolute(string $rule): void
+    /**
+     * Adds a file to the gitignore.
+     * The difference to #addLine is that a leading slash will be prepended.
+     * This is useful if you have a path that you want to exclude.
+     * You should prefer this to #addLine
+     *
+     * @param string $relativePath
+     * @see GitignoreConfigurator::addLine
+     */
+    public function add(string $relativePath): void
     {
-        $this->add('/' . ltrim($rule, '/'));
+        $path = '/' . ltrim($relativePath, '/');
+        $this->addLine($path);
     }
 
-    public function getIterator(): \Iterator
+    public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
-        foreach ($this->rules as $rule) {
-            yield $rule;
-        }
-    }
-
-    public function configure(ExecutionContext $context): void
-    {
-        if ($this->isAddLocalPackages()) {
-            $this->addLocalPackages($context);
-        }
-
         $updates = $this->update($context->getPath('.gitignore'));
         $verbosity = $updates > 0 ? IOInterface::NORMAL : IOInterface::VERBOSE;
         $msg = $updates === 1 ? "<info>1</info> new gitignore rule" : "<info>$updates</info> new gitignore rules";
         $context->getIo()->write($msg, true, $verbosity);
-    }
-
-    protected function addLocalPackages(ExecutionContext $context): void
-    {
-        $vendorDir = $context->getComposer()->getConfig()->get('vendor-dir');
-        $this->addAbsolute(Path::makeRelative($vendorDir, $context->getRootDir()));
-
-        // all packages are normally in the vendor dir and this won't do anything
-        // however, if an installer puts it somewhere else, than this rule will prevent it from being versioned
-        foreach ($context->getLocalRepository()->getCanonicalPackages() as $package) {
-            // the add function will test if the rule is already covered
-            $packagePath = $context->getInstallationManager()->getInstallPath($package);
-            $this->addAbsolute(Path::makeRelative($packagePath, $context->getRootDir()));
-        }
     }
 
     protected function update(string $path): int
@@ -125,15 +116,5 @@ class GitignoreConfigurator implements ConfiguratorInterface, \IteratorAggregate
                 unset($this->rules[$index]);
             }
         }
-    }
-
-    public function isAddLocalPackages(): bool
-    {
-        return $this->addLocalPackages;
-    }
-
-    public function setAddLocalPackages(bool $addLocalPackages): void
-    {
-        $this->addLocalPackages = $addLocalPackages;
     }
 }

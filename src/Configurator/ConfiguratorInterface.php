@@ -4,6 +4,7 @@
 namespace Nemo64\Environment\Configurator;
 
 
+use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
 
 /**
@@ -23,7 +24,8 @@ interface ConfiguratorInterface
      * This method configures other services and writes to the disk.
      *
      * @param ExecutionContext $context
+     * @param ConfiguratorContainer $container
      * @return void
      */
-    public function configure(ExecutionContext $context): void;
+    public function configure(ExecutionContext $context, ConfiguratorContainer $container): void;
 }

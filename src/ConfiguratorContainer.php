@@ -60,9 +60,18 @@ class ConfiguratorContainer
         }
     }
 
+    public function get(string $class): ?ConfiguratorInterface
+    {
+        if (!isset($this->instances[$class])) {
+            return null;
+        }
+
+        return $this->instances[$class];
+    }
+
     public function configure(Composer $composer, IOInterface $io, string $rootDir)
     {
-        usort($this->instances, function (ConfiguratorInterface $a, ConfiguratorInterface $b) {
+        uasort($this->instances, function (ConfiguratorInterface $a, ConfiguratorInterface $b) {
             if (in_array(get_class($b), $a->getInfluences(), true)) {
                 return -1;
             }
@@ -75,10 +84,9 @@ class ConfiguratorContainer
         });
 
         $context = new ExecutionContext($composer, $io, $rootDir);
-        foreach ($this->instances as $instance) {
-            $class = get_class($instance);
+        foreach ($this->instances as $class => $instance) {
             $io->write("Execute <info>$class</info>", true, IOInterface::VERBOSE);
-            $instance->configure($context);
+            $instance->configure($context, $this);
         }
     }
 }

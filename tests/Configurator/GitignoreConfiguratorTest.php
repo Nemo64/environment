@@ -7,6 +7,7 @@ use Composer\Config;
 use Composer\IO\NullIO;
 use Composer\Repository\RepositoryManager;
 use Composer\Repository\WritableRepositoryInterface;
+use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
@@ -47,9 +48,8 @@ class GitignoreConfiguratorTest extends TestCase
     protected function createConfigurationWith(string ...$rules): GitignoreConfigurator
     {
         $gitignoreConfigurator = new GitignoreConfigurator();
-        $gitignoreConfigurator->setAddLocalPackages(false);
         foreach ($rules as $rule) {
-            $gitignoreConfigurator->add($rule);
+            $gitignoreConfigurator->addLine($rule);
         }
 
         return $gitignoreConfigurator;
@@ -57,7 +57,7 @@ class GitignoreConfiguratorTest extends TestCase
 
     protected function createAndUseConfigurationWith(string ...$rules): void
     {
-        $this->createConfigurationWith(...$rules)->configure($this->createContext());
+        $this->createConfigurationWith(...$rules)->configure($this->createContext(), new ConfiguratorContainer([]));
     }
 
     protected function createFileWith(string ...$rules): vfsStreamFile
@@ -81,7 +81,7 @@ class GitignoreConfiguratorTest extends TestCase
         $gitignoreConfigurator = $this->createConfigurationWith();
         $this->assertFalse($this->rootDir->hasChildren(), "Noting done yet");
 
-        $gitignoreConfigurator->configure($this->createContext());
+        $gitignoreConfigurator->configure($this->createContext(), new ConfiguratorContainer([]));
         $this->assertFalse($this->rootDir->hasChildren(), "Still no gitignore created since it would be empty");
 
         $this->createAndUseConfigurationWith('/vendor');
@@ -141,19 +141,5 @@ class GitignoreConfiguratorTest extends TestCase
         $this->createFileWith('# this is some comment', 'folder1');
         $this->createAndUseConfigurationWith('folder1');
         $this->assertGitignoreContent(['# this is some comment', 'folder1']);
-    }
-
-    public function testVendorDir()
-    {
-        $configurator = $this->createConfigurationWith(/* noting */);
-        $configurator->setAddLocalPackages(true);
-        $configurator->configure($this->createContext());
-        $this->assertGitignoreContent(['/vendor']);
-    }
-
-    public function testTraversable()
-    {
-        $configurator = $this->createConfigurationWith('file1', 'file2');
-        $this->assertEquals(['file1', 'file2'], iterator_to_array($configurator));
     }
 }
