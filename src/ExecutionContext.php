@@ -87,4 +87,14 @@ class ExecutionContext
     {
         return Path::join($this->getRootDir(), ...$path);
     }
+
+    public function info(string $message, bool $newline = true): void
+    {
+        $this->getIo()->write($message, $newline, IOInterface::VERBOSE);
+    }
+
+    public function warn(string $message, bool $newline = true): void
+    {
+        $this->getIo()->write($message, $newline, IOInterface::NORMAL);
+    }
 }
