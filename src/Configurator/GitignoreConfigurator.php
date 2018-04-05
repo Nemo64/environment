@@ -64,13 +64,18 @@ class GitignoreConfigurator implements ConfiguratorInterface
 
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
-        $updates = $this->update($context->getPath('.gitignore'));
-        $verbosity = $updates > 0 ? IOInterface::NORMAL : IOInterface::VERBOSE;
-        $msg = $updates === 1 ? "<info>1</info> new gitignore rule" : "<info>$updates</info> new gitignore rules";
-        $context->getIo()->write($msg, true, $verbosity);
+        $this->update($context->getPath('.gitignore'));
+
+        if (empty($this->rules)) {
+            $context->info("No new gitignore rules");
+        } else {
+            foreach ($this->rules as $rule) {
+                $context->warn("Added gitignore rule: <info>$rule</info>");
+            }
+        }
     }
 
-    protected function update(string $path): int
+    protected function update(string $path)
     {
         $fileExists = file_exists($path);
         $hasTailingEmptyLine = false;
@@ -104,8 +109,6 @@ class GitignoreConfigurator implements ConfiguratorInterface
             }
             fclose($handle);
         }
-
-        return $newRules;
     }
 
     private function remove(string $rule): void
