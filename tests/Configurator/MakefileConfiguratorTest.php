@@ -15,18 +15,60 @@ class MakefileConfiguratorTest extends TestCase
         $this->assertEquals($expectedString, $actualString, $message);
     }
 
-    public function testEmptyMakeFile()
+    public function testEmptyMakefile()
     {
-        $makefileConfigurator = new MakefileConfigurator();
-        $this->configure($makefileConfigurator);
+        $make = new MakefileConfigurator(false);
+        $this->configure($make);
         $this->assertMakefileContent([
-            ".PHONY: help install clean",
-            "",
-            "help:",
+            "SHELL=/bin/sh",
+            "PHP=php",
+        ]);
+    }
+
+    public function testEnvironment()
+    {
+        $make = new MakefileConfigurator(false);
+        $make->setEnvironment('Example', "Value");
+        $this->configure($make);
+        $this->assertMakefileContent([
+            "SHELL=/bin/sh",
+            "PHP=php",
+            "Example=Value",
+        ]);
+    }
+
+    public function testEnvironmentOverride()
+    {
+        $make = new MakefileConfigurator(false);
+
+        // default environment variables are a specialty and can be overwritten... but only once
+        $make->setEnvironment('PHP', "not-php");
+        $make->setEnvironment('PHP', "not-php2");
+
+        // normal values can't be overwritten.
+        // This allows other configurators to be executed before another and overwrite their env variable by defining it first
+        $make->setEnvironment('VALUE', "1");
+        $make->setEnvironment('VALUE', "2");
+        $this->configure($make);
+        $this->assertMakefileContent([
+            "SHELL=/bin/sh",
+            "PHP=not-php",
+            "VALUE=1",
+        ]);
+    }
+
+    public function testTarget()
+    {
+        $make = new MakefileConfigurator(false);
+        $make['install']->addCommand('do install');
+        $this->configure($make);
+
+        $this->assertMakefileContent([
+            "SHELL=/bin/sh",
+            "PHP=php",
             "",
             "install:",
-            "",
-            "clean:",
+            "\tdo install",
         ]);
     }
 }

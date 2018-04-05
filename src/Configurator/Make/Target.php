@@ -29,6 +29,11 @@ class Target
     private $commands = [];
 
     /**
+     * @var string
+     */
+    private $description = '';
+
+    /**
      * Target constructor.
      * @param string $name
      */
@@ -184,5 +189,34 @@ class Target
         });
 
         return $this->commands;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param string $description
+     */
+    public function setDescription(string $description): void
+    {
+        $this->description = $description;
+    }
+
+    /**
+     * @param string $description
+     */
+    public function appendDescription(string $description): void
+    {
+        $this->setDescription(empty($this->getDescription()) ? "$description" : "\n$description");
+    }
+
+    public function isEmpty()
+    {
+        return empty($this->dependencies) && empty($this->commands);
     }
 }

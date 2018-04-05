@@ -21,23 +21,14 @@ trait EnvironmentContainer
      */
     public function setEnvironment(string $name, ?string $value): void
     {
+        if (isset($this->environment[$name])) {
+            return;
+        }
+
         if ($value === null) {
             $this->setEnvironmentRequired($name);
         } else {
             $this->environment[$name] = $value;
-        }
-    }
-
-    /**
-     * @param string $name
-     * @param string $value
-     */
-    public function appendEnvironment(string $name, string $value): void
-    {
-        if (isset($this->environment["$name:"])) {
-            $this->environment["$name:"] .= $value;
-        } else {
-            $this->environment["$name:"] = $value;
         }
     }
 
@@ -55,6 +46,10 @@ trait EnvironmentContainer
      */
     public function setEnvironmentRequired(string $name, string $message = null): void
     {
+        if (isset($this->requirements[$name])) {
+            return;
+        }
+
         $this->requirements[$name] = $message ?: "environment $name is not defined";
     }
 

@@ -18,12 +18,32 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
      */
     private $targets = [];
 
-    public function __construct()
+    public function __construct(bool $init = true)
     {
+        // used for testing
+        if (!$init) {
+            return;
+        }
+
         // add basic task structure
         $this['.PHONY']->addDependency($this['help']);
         $this['.PHONY']->addDependency($this['install']);
         $this['.PHONY']->addDependency($this['clean']);
+
+        // describe basic tasks
+        $this['help']->setDescription("Prints this help text.");
+        $this['install']->setDescription("Installs all dependencies of the project.");
+        $this['clean']->setDescription("Removes dependencies and temporary files to get a clean start. Hint: make clean install");
+    }
+
+    public function getEnvironment(): array
+    {
+        // the environment variables SHELL and PHP are there by default.
+        // they can be overwritten but only once. This is implemented by simply not defining them until needed.
+        return array_replace([
+            'SHELL' => '/bin/sh',
+            'PHP' => 'php',
+        ], $this->environment);
     }
 
     public function getInfluences(): array
@@ -33,6 +53,8 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
 
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
+        $this->generateHelpTarget();
+
         $result = [];
 
         foreach ($this->getEnvironment() as $key => $value) {
@@ -40,6 +62,10 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
         }
 
         foreach ($this->targets as $target) {
+            if ($target->isEmpty()) {
+                continue;
+            }
+
             $result[] = PHP_EOL . $target->__toString();
         }
 
@@ -48,6 +74,17 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
             implode("\n", $result) . "\n"
         );
         $context->getIo()->write("Makefile rewritten.", true, IOInterface::VERBOSE);
+    }
+
+    protected function generateHelpTarget(): void
+    {
+        foreach ($this['.PHONY']->getDependencies() as $target) {
+            $descriptionLines = explode(PHP_EOL, $target->getDescription());
+            $this['help']->addCommand(sprintf('$(info - %10s: %s)', $target->getName(), reset($descriptionLines)));
+            foreach (array_slice($descriptionLines, 1) as $descriptionLine) {
+                $this['help']->addCommand(sprintf('$(info %s)', "\t" . $descriptionLine));
+            }
+        }
     }
 
     public function offsetExists($offset): bool
