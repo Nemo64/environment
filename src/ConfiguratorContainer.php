@@ -33,7 +33,7 @@ class ConfiguratorContainer
         foreach ($repository->getPackages() as $package) {
             $packageClasses = static::getClassesFromPackage($package);
             foreach ($packageClasses as $packageClass) {
-                $class = is_string($packageClasses) ? $packageClass : get_class($packageClass);
+                $class = is_string($packageClass) ? $packageClass : get_class($packageClass);
                 $result[$class] = $packageClass;
             }
         }
