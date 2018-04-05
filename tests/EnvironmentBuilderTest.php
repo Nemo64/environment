@@ -50,7 +50,9 @@ class EnvironmentBuilderTest extends TestCase
         $configurator->expects($this->never())->method('configure');
 
         $builder = new EnvironmentBuilder();
-        $composer = $this->createComposerWithConfiguration(['classes' => [$configurator]], false);
+        $composer = $this->createComposerWithConfiguration([
+            'classes' => [$configurator]
+        ], false);
         $builder->execute(new Event('install', $composer, new NullIO()));
     }
 
@@ -60,7 +62,22 @@ class EnvironmentBuilderTest extends TestCase
         $configurator->expects($this->once())->method('configure');
 
         $builder = new EnvironmentBuilder();
-        $composer = $this->createComposerWithConfiguration(['classes' => [$configurator]]);
+        $composer = $this->createComposerWithConfiguration([
+            'classes' => [$configurator]
+        ]);
+        $builder->execute(new Event('install', $composer, new NullIO()));
+    }
+
+    public function testBlacklist()
+    {
+        $configurator = $this->createMock(ConfiguratorInterface::class);
+        $configurator->expects($this->never())->method('configure');
+
+        $builder = new EnvironmentBuilder();
+        $composer = $this->createComposerWithConfiguration([
+            'classes' => [$configurator],
+            'blacklist' => [get_class($configurator)]
+        ]);
         $builder->execute(new Event('install', $composer, new NullIO()));
     }
 }

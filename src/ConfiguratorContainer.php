@@ -21,6 +21,11 @@ class ConfiguratorContainer
         return $package->getExtra()[EnvironmentBuilder::PACKAGE_NAME]['classes'] ?? [];
     }
 
+    public static function getBlacklistFromPackage(PackageInterface $package): array
+    {
+        return $package->getExtra()[EnvironmentBuilder::PACKAGE_NAME]['blacklist'] ?? [];
+    }
+
     public static function getClassesFromRepository(RepositoryInterface $repository): array
     {
         $result = [];
@@ -28,7 +33,15 @@ class ConfiguratorContainer
         foreach ($repository->getPackages() as $package) {
             $packageClasses = static::getClassesFromPackage($package);
             foreach ($packageClasses as $packageClass) {
-                $result[] = $packageClass;
+                $class = is_string($packageClasses) ? $packageClass : get_class($packageClass);
+                $result[$class] = $packageClass;
+            }
+        }
+
+        foreach ($repository->getPackages() as $package) {
+            $packageClasses = static::getBlacklistFromPackage($package);
+            foreach ($packageClasses as $packageClass) {
+                unset($result[$packageClass]);
             }
         }
 
