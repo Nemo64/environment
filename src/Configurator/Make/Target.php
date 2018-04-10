@@ -34,6 +34,11 @@ class Target
     private $description = '';
 
     /**
+     * @var int
+     */
+    private $priority = 0;
+
+    /**
      * Target constructor.
      * @param string $name
      */
@@ -121,6 +126,10 @@ class Target
     public function addDependency(Target $dependency): void
     {
         $this->dependencies[$dependency->getName()] = $dependency;
+
+        if ($dependency->getPriority() < $this->getPriority() / 2) {
+            $dependency->setPriority($this->getPriority() / 2);
+        }
     }
 
     /**
@@ -215,8 +224,27 @@ class Target
         $this->setDescription(empty($this->getDescription()) ? "$description" : "\n$description");
     }
 
-    public function isEmpty()
+    /**
+     * @return bool
+     */
+    public function isEmpty(): bool
     {
         return empty($this->dependencies) && empty($this->commands);
+    }
+
+    /**
+     * @return int
+     */
+    public function getPriority(): int
+    {
+        return $this->priority;
+    }
+
+    /**
+     * @param int $priority
+     */
+    public function setPriority(int $priority): void
+    {
+        $this->priority = $priority;
     }
 }

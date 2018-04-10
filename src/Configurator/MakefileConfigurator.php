@@ -26,11 +26,13 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
         }
 
         // add basic task structure
+        $this['.PHONY']->setPriority(800);
         $this['.PHONY']->addDependency($this['help']);
         $this['.PHONY']->addDependency($this['install']);
         $this['.PHONY']->addDependency($this['clean']);
 
         // describe basic tasks
+        $this['help']->setPriority(1000);
         $this['help']->setDescription("Prints this help text.");
         $this['install']->setDescription("Installs all dependencies of the project.");
         $this['clean']->setDescription("Removes dependencies and temporary files to get a clean start. Hint: make clean install");
@@ -53,27 +55,11 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
 
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
+        uasort($this->targets, function (Target $a, Target $b) {
+            return $b->getPriority() <=> $a->getPriority();
+        });
         $this->generateHelpTarget();
-
-        $result = [];
-
-        foreach ($this->getEnvironment() as $key => $value) {
-            $result[] = "$key=$value";
-        }
-
-        foreach ($this->targets as $target) {
-            if ($target->isEmpty()) {
-                continue;
-            }
-
-            $result[] = PHP_EOL . $target->__toString();
-        }
-
-        file_put_contents(
-            $context->getPath('Makefile'),
-            implode("\n", $result) . "\n"
-        );
-        $context->getIo()->write("Makefile rewritten.", true, IOInterface::VERBOSE);
+        $this->writeFile($context);
     }
 
     protected function generateHelpTarget(): void
@@ -114,5 +100,31 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
     public function offsetUnset($offset): void
     {
         unset($this->targets[$offset]);
+    }
+
+    /**
+     * @param ExecutionContext $context
+     */
+    protected function writeFile(ExecutionContext $context): void
+    {
+        $result = [];
+
+        foreach ($this->getEnvironment() as $key => $value) {
+            $result[] = "$key=$value";
+        }
+
+        foreach ($this->targets as $target) {
+            if ($target->isEmpty()) {
+                continue;
+            }
+
+            $result[] = PHP_EOL . $target->__toString();
+        }
+
+        file_put_contents(
+            $context->getPath('Makefile'),
+            implode("\n", $result) . "\n"
+        );
+        $context->getIo()->write("Makefile rewritten.", true, IOInterface::VERBOSE);
     }
 }
