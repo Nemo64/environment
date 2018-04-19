@@ -12,9 +12,9 @@ class LineMerger
         return substr(base64_encode(sha1($line, true)), 0, static::HASH_LENGTH);
     }
 
-    public static function createChecksum(string $content)
+    public static function createChecksum(string $content): string
     {
-        return array_map('static::createLineChecksum', explode("\n", $content));
+        return implode('', array_map('static::createLineChecksum', explode("\n", $content)));
     }
 
     private static function arraySearch(array $haystack, $needle, int $offset): int
