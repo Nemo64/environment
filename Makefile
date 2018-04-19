@@ -8,8 +8,5 @@ test: install
 
 install: vendor
 
-vendor: composer.lock
+vendor: $(wildcard composer.*)
 	$(COMPOSER) install
-
-composer.lock: composer.json
-	$(COMPOSER) update
