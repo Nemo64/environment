@@ -15,6 +15,12 @@ class LineMergerTest extends TestCase
                 "welt",
                 "welt"
             ],
+            'addLine' => [
+                "text",
+                "text",
+                "text\ntext",
+                "text\ntext"
+            ],
             'insertedAfter' => [
                 "hallo",
                 "hallo\nnewline",
@@ -55,8 +61,8 @@ class LineMergerTest extends TestCase
                 "text",
                 "",
                 "text\ntext",
-                ""
-            ]
+                "\ntext"
+            ],
         ];
     }
 

@@ -43,10 +43,14 @@ class LineMerger
 
             $noMoreOldContent = count($oldChecksum) <= $old;
             if ($noMoreOldContent) {
-                $leftOverContent = array_slice($curContent, $cur);
-                if (count($leftOverContent) > 0) {
-                    array_push($result, ...$leftOverContent);
+                if (count($curContent) > $cur) {
+                    array_push($result, ...array_slice($curContent, $cur));
                 }
+
+                if (count($newContent) > $new) {
+                    array_push($result, ...array_slice($newContent, $new));
+                }
+
                 break;
             }
 
@@ -60,7 +64,7 @@ class LineMerger
                 $result[] = $newContent[$new];
                 $old = $old + 1;
                 $cur = $nextMatchingLine + 1;
-                $new = $nextMatchingLine + 1;
+                $new = $new + 1;
                 continue;
             }
 
