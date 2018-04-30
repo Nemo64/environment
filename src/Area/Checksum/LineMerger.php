@@ -30,7 +30,7 @@ class LineMerger
 
     public static function mergeContent(string $oldChecksum, string $curContent, string $newContent): string
     {
-        $oldChecksum = str_split($oldChecksum, static::HASH_LENGTH);
+        $oldChecksum = $oldChecksum === null ? [] : str_split($oldChecksum, static::HASH_LENGTH);
         $curContent = explode("\n", $curContent);
         $newContent = explode("\n", $newContent);
         $curChecksum = array_map('static::createLineChecksum', $curContent);

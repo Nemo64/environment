@@ -60,10 +60,7 @@ class Target
         }
 
         if ($this->getDependencies()) {
-            $names = array_map(function (Target $target) {
-                return $target->getName();
-            }, $this->getDependencies());
-            $result[] = $name . ': ' . implode(' ', $names);
+            $result[] = $name . ': ' . $this->getDependencyString();
         } else {
             $result[] = $name . ':';
         }
@@ -132,12 +129,25 @@ class Target
         }
     }
 
+    public function addDependencyString(string $dependency): void
+    {
+        $this->dependencies[$dependency] = null;
+    }
+
     /**
      * @return Target[]
      */
     public function getDependencies(): array
     {
         return $this->dependencies;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDependencyString(): string
+    {
+        return implode(" ", array_keys($this->dependencies));
     }
 
     /**

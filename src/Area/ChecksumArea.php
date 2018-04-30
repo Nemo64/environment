@@ -6,63 +6,51 @@ namespace Nemo64\Environment\Area;
 
 use Nemo64\Environment\Area\Checksum\LineMerger;
 
-class ChecksumArea extends AbstractMarkerArea
+class ChecksumArea implements AreaInterface
 {
-    const HASH_LENGTH = 4;
+    private $comment;
 
-    /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $startComment;
-
-    /**
-     * @var string
-     */
-    private $endComment;
-
-    public function __construct(string $name, string $startComment = '# ', string $endComment = '')
+    public function __construct(string $commentPrefix = '# ')
     {
-        $this->name = $name;
-        $this->startComment = $startComment;
-        $this->endComment = $endComment;
+        $this->comment = $commentPrefix . 'checksum: ';
     }
 
-    protected function getStartCommentPrefix(): string
+    private function getChecksum($handle): ?string
     {
-        return $this->startComment . $this->name . ': ';
-    }
+        rewind($handle);
 
-    protected function isStart(string $line): bool
-    {
-        $startComment = $this->getStartCommentPrefix();
-        return substr($line, 0, strlen($startComment)) === $startComment;
-    }
-
-    protected function isEnd(string $line): bool
-    {
-        return "\n" === $line;
-    }
-
-    protected function wrapContent(string $oldWrap, string $newContent): string
-    {
-        $newChecksum = LineMerger::createChecksum($newContent);
-        $startCommentPrefix = $this->getStartCommentPrefix();
-        if (substr($oldWrap, 0, strlen($startCommentPrefix)) !== $startCommentPrefix) {
-            return "{$startCommentPrefix}{$newChecksum}\n{$newContent}\n";
+        $firstLine = fgets($handle);
+        if (substr($firstLine, 0, strlen($this->comment))) {
+            return substr($firstLine, strlen($this->comment), -1);
         }
 
-        $prefixLength = strlen($startCommentPrefix);
-        $oldChecksum = substr($oldWrap, $prefixLength, strpos($oldWrap, "\n", $prefixLength) - $prefixLength);
-        $userContent = substr($oldWrap, strpos($oldWrap, "\n", $prefixLength) + 1, -1);
+        return null;
+    }
 
-        $resultChecksum = LineMerger::createChecksum($newContent);
-        $result = LineMerger::mergeContent($oldChecksum, $userContent, $newContent);
+    public function exists($handle): bool
+    {
+        return $this->getChecksum($handle) !== null;
+    }
 
-        return "{$startCommentPrefix}{$resultChecksum}\n{$result}\n";
+    public function write($handle, string $newContent): void
+    {
+        $checksum = $this->getChecksum($handle);
+        if ($checksum === null) {
+            $result = $newContent;
+        } else {
+            $oldContent = stream_get_contents($handle);
+            $result = LineMerger::mergeContent($checksum, $oldContent, $newContent);
+        }
+
+        $result = $this->comment . LineMerger::createChecksum($newContent) . "\n" . $result;
+        rewind($handle);
+        fwrite($handle, $result);
+        ftruncate($handle, strlen($result));
+    }
+
+    public function read($handle): string
+    {
+        $checksum = $this->getChecksum($handle);
+        return stream_get_contents($handle);
     }
 }

@@ -4,9 +4,9 @@ namespace Nemo64\Environment\Area;
 
 class ChecksumAreaTest extends AreaInterfaceTest
 {
-    public function createInstance(): AreaInterface
+    public function createInstance(string $name = ''): AreaInterface
     {
-        return new ChecksumArea('test area');
+        return new ChecksumArea($name);
     }
 
     public function testChange()
@@ -15,14 +15,14 @@ class ChecksumAreaTest extends AreaInterfaceTest
         $handle = fopen('php://temp', 'r+');
 
         $this->assertFalse($area->exists($handle));
-        $area->write($handle, implode(PHP_EOL, [
+        $area->write($handle, implode("\n", [
             'memory_limit=128M',
             'display_errors=Off',
         ]));
 
         $this->assertTrue($area->exists($handle));
         $this->assertEquals(
-            implode(PHP_EOL, [
+            implode("\n", [
                 'memory_limit=128M',
                 'display_errors=Off',
             ]),
@@ -36,7 +36,7 @@ class ChecksumAreaTest extends AreaInterfaceTest
         ftruncate($handle, strlen($content));
 
         $this->assertTrue($area->exists($handle));
-        $area->write($handle, implode(PHP_EOL, [
+        $area->write($handle, implode("\n", [
             'memory_limit=256M',
             'display_errors=Off',
             '# an additional line',
@@ -44,7 +44,7 @@ class ChecksumAreaTest extends AreaInterfaceTest
 
         $this->assertTrue($area->exists($handle));
         $this->assertEquals(
-            implode(PHP_EOL, [
+            implode("\n", [
                 'memory_limit=256M',
                 'display_errors=On',
                 '# an additional line',

@@ -7,7 +7,7 @@ interface AreaInterface
 {
     public function exists($handle): bool;
 
-    public function write($handle, string $content): void;
+    public function write($handle, string $newContent): void;
 
     public function read($handle): string;
 }

@@ -12,6 +12,7 @@ class MakefileConfiguratorTest extends TestCase
     {
         $expectedString = implode(PHP_EOL, $expected);
         $actualString = trim(file_get_contents($this->rootDir->getChild('Makefile')->url()));
+        $actualString = preg_replace("/#[^\n]+\n/m", "", $actualString);
         $this->assertEquals($expectedString, $actualString, $message);
     }
 

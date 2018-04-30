@@ -4,6 +4,7 @@ namespace Nemo64\Environment\Configurator;
 
 
 use Composer\IO\IOInterface;
+use Nemo64\Environment\Area\ChecksumArea;
 use Nemo64\Environment\Configurator\Make\EnvironmentContainer;
 use Nemo64\Environment\Configurator\Make\Target;
 use Nemo64\Environment\ConfiguratorContainer;
@@ -102,10 +103,7 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
         unset($this->targets[$offset]);
     }
 
-    /**
-     * @param ExecutionContext $context
-     */
-    protected function writeFile(ExecutionContext $context): void
+    protected function getEnvironmentVariableString(): string
     {
         $result = [];
 
@@ -113,18 +111,28 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
             $result[] = "$key=$value";
         }
 
+        return implode("\n", $result);
+    }
+
+    /**
+     * @param ExecutionContext $context
+     */
+    protected function writeFile(ExecutionContext $context): void
+    {
+        $makefileArea = new ChecksumArea();
+        $makefileHandle = fopen($context->getPath('Makefile'), 'c+');
+
+        $content = $this->getEnvironmentVariableString() . "\n";
+
         foreach ($this->targets as $target) {
             if ($target->isEmpty()) {
                 continue;
             }
 
-            $result[] = PHP_EOL . $target->__toString();
+            $content .= "\n" . (string)$target . "\n";
         }
 
-        file_put_contents(
-            $context->getPath('Makefile'),
-            implode("\n", $result) . "\n"
-        );
+        $makefileArea->write($makefileHandle, $content);
         $context->getIo()->write("Makefile rewritten.", true, IOInterface::VERBOSE);
     }
 }
