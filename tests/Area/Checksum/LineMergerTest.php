@@ -63,6 +63,12 @@ class LineMergerTest extends TestCase
                 "text\ntext",
                 "\ntext"
             ],
+            'shorten' => [
+                "line1\nline2\nline3",
+                "line1\nline2\nline3",
+                "line1",
+                "line1"
+            ],
         ];
     }
 

@@ -82,22 +82,40 @@ class ConfiguratorContainer
         return $this->instances[$class];
     }
 
+    private function resolveInfluences(ConfiguratorInterface $configurator): array
+    {
+        $result = [];
+
+        foreach ($configurator->getInfluences() as $influence) {
+            $result[] = $influence;
+
+            if (isset($this->instances[$influence])) {
+                $innerResult = $this->resolveInfluences($this->instances[$influence]);
+                if ($innerResult) {
+                    array_unshift($result, ...$innerResult);
+                }
+            }
+        }
+
+        return $result;
+    }
+
     public function configure(Composer $composer, IOInterface $io, string $rootDir)
     {
-        uasort($this->instances, function (ConfiguratorInterface $a, ConfiguratorInterface $b) {
-            if (in_array(get_class($b), $a->getInfluences(), true)) {
-                return -1;
+        $instances = [];
+        foreach ($this->instances as $instance) {
+            foreach ($this->resolveInfluences($instance) as $resolvedInfluence) {
+                if (isset($this->instances[$resolvedInfluence])) {
+                    $instances[$resolvedInfluence] = $this->instances[$resolvedInfluence];
+                }
             }
+            $instances[get_class($instance)] = $instance;
+        }
 
-            if (in_array(get_class($a), $b->getInfluences(), true)) {
-                return 1;
-            }
-
-            return 0;
-        });
+        $instances = array_reverse($instances);
 
         $context = new ExecutionContext($composer, $io, $rootDir);
-        foreach ($this->instances as $class => $instance) {
+        foreach ($instances as $class => $instance) {
             $io->write("Execute <info>$class</info>", true, IOInterface::VERBOSE);
             $instance->configure($context, $this);
         }

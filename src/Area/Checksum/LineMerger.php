@@ -61,7 +61,9 @@ class LineMerger
                     array_push($result, ...array_slice($curContent, $cur, $offset));
                 }
 
-                $result[] = $newContent[$new];
+                if (isset($newContent[$new])) {
+                    $result[] = $newContent[$new];
+                }
                 $old = $old + 1;
                 $cur = $nextMatchingLine + 1;
                 $new = $new + 1;
