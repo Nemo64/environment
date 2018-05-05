@@ -6,9 +6,11 @@ namespace Nemo64\Environment;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
+use Composer\Package\PackageInterface;
 use Composer\Plugin\PluginInterface;
 use Composer\Script\Event;
 use Composer\Script\ScriptEvents;
+use Webmozart\PathUtil\Path;
 
 class EnvironmentBuilder implements PluginInterface, EventSubscriberInterface
 {
@@ -51,9 +53,34 @@ class EnvironmentBuilder implements PluginInterface, EventSubscriberInterface
             return;
         }
 
+        if (!$this->isDevRequirementOf($event->getComposer()->getPackage())) {
+            $msg = "nemo64/environment isn't a dev requirement.";
+            $msg .= "\nFor it to build your environment install it as a dev requirement.";
+            $msg .= "\nIf your are building an extension to the envionment, then this message is fine.";
+            $event->getIO()->write($msg);
+            return;
+        }
+
+        try {
+            include Path::join($event->getComposer()->getConfig()->get('vendor-dir'), 'autoload.php');
+        } catch (\Throwable $e) {
+            $event->getIO()->write("Something went wrong while including the autoload file: " . $e->getMessage());
+        }
+
         $configuratorClasses = ConfiguratorContainer::getClassesFromRepository($localRepository);
         $container = ConfiguratorContainer::createFromClassList($configuratorClasses);
         $container->configure($event->getComposer(), $event->getIO(), getcwd());
+    }
+
+    private function isDevRequirementOf(PackageInterface $package): bool
+    {
+        foreach ($package->getDevRequires() as $require) {
+            if ($require->getTarget() === 'nemo64/environment') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function activate(Composer $composer, IOInterface $io)
