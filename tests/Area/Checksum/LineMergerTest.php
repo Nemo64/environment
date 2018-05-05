@@ -61,7 +61,7 @@ class LineMergerTest extends TestCase
                 "text",
                 "",
                 "text\ntext",
-                "\ntext"
+                "text"
             ],
             'shorten' => [
                 "line1\nline2\nline3",
@@ -69,6 +69,12 @@ class LineMergerTest extends TestCase
                 "line1",
                 "line1"
             ],
+            'completelyDifferent' => [
+                null,
+                "diff1\ndiff2\ndiff3",
+                "line1\nline2\nline3",
+                "diff1\ndiff2\ndiff3",
+            ]
         ];
     }
 
@@ -81,7 +87,9 @@ class LineMergerTest extends TestCase
      */
     public function testMerge($oldContent, $userContent, $newContent, $expectResult)
     {
-        $checksum = implode('', array_map('Nemo64\Environment\Area\Checksum\LineMerger::createChecksum', explode("\n", $oldContent)));
+        $checksum = $oldContent !== null
+            ? implode('', array_map('Nemo64\Environment\Area\Checksum\LineMerger::createChecksum', explode("\n", $oldContent)))
+            : null;
         $this->assertEquals($expectResult, LineMerger::mergeContent($checksum, $userContent, $newContent));
     }
 }

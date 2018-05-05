@@ -47,7 +47,7 @@ class LineMerger
                     array_push($result, ...array_slice($curContent, $cur));
                 }
 
-                if (count($newContent) > $new) {
+                if (count($newContent) > $new && (count($oldChecksum) > 0 || count($curContent) === 0)) {
                     array_push($result, ...array_slice($newContent, $new));
                 }
 
