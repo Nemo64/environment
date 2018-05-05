@@ -35,12 +35,8 @@ class ChecksumArea implements AreaInterface
     public function write($handle, string $newContent): void
     {
         $checksum = $this->getChecksum($handle);
-        if ($checksum === null) {
-            $result = $newContent;
-        } else {
-            $oldContent = stream_get_contents($handle);
-            $result = LineMerger::mergeContent($checksum, $oldContent, $newContent);
-        }
+        $oldContent = stream_get_contents($handle);
+        $result = LineMerger::mergeContent($checksum, $oldContent, $newContent);
 
         $result = $this->comment . LineMerger::createChecksum($newContent) . "\n" . $result;
         rewind($handle);

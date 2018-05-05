@@ -52,4 +52,14 @@ class ChecksumAreaTest extends AreaInterfaceTest
             $area->read($handle)
         );
     }
+
+    public function testPreviousContent()
+    {
+        $area = $this->createInstance();
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, "test\ntest");
+
+        $area->write($handle, "foo\nfoo");
+        $this->assertEquals("test\ntest", $area->read($handle));
+    }
 }
