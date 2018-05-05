@@ -4,10 +4,15 @@ namespace Nemo64\Environment;
 
 
 use Composer\Composer;
+use Composer\Config\JsonConfigSource;
 use Composer\IO\IOInterface;
+use Composer\Json\JsonFile;
 use Composer\Package\PackageInterface;
 use Composer\Repository\RepositoryInterface;
+use Nemo64\Environment\Configurator\ConfigurableConfiguratorInterface;
 use Nemo64\Environment\Configurator\ConfiguratorInterface;
+use Symfony\Component\OptionsResolver\Options;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ConfiguratorContainer
 {
@@ -15,6 +20,11 @@ class ConfiguratorContainer
      * @var ConfiguratorInterface[]
      */
     private $instances = [];
+
+    /**
+     * @var array|null
+     */
+    private $options = null;
 
     public static function getClassesFromPackage(PackageInterface $package): array
     {
@@ -82,6 +92,15 @@ class ConfiguratorContainer
         return $this->instances[$class];
     }
 
+    public function getOption(string $name)
+    {
+        if ($this->options === null) {
+            throw new \LogicException("Options aren't available yet.");
+        }
+
+        return $this->options[$name] ?? null;
+    }
+
     private function resolveInfluences(ConfiguratorInterface $configurator): array
     {
         $result = [];
@@ -112,12 +131,47 @@ class ConfiguratorContainer
             $instances[get_class($instance)] = $instance;
         }
 
+        /** @var ConfiguratorInterface[] $instances */
         $instances = array_reverse($instances);
-
         $context = new ExecutionContext($composer, $io, $rootDir);
+        $optionResolver = $this->createOptionResolver($context);
+
+        foreach ($instances as $instance) {
+            if ($instance instanceof ConfigurableConfiguratorInterface) {
+                $instance->configureOptions($context, $optionResolver);
+            }
+        }
+
+        $oldExtra = $extra = $composer->getPackage()->getExtra();
+        $this->options = $optionResolver->resolve($extra[EnvironmentBuilder::PACKAGE_NAME]['options'] ?? []);
+        $extra[EnvironmentBuilder::PACKAGE_NAME]['options'] = $this->options;
+        $composer->getPackage()->setExtra($extra);
+
+        if ($extra != $oldExtra) {
+            $io->write("options have changed, write compose.json extra section");
+            $composerFilePath = trim(getenv('COMPOSER')) ?: $context->getPath('composer.json');
+            $composerFile = new JsonFile($composerFilePath, null, $context->getIo());
+            $configSource = new JsonConfigSource($composerFile);
+            $configSource->addProperty('extra', $extra);
+        }
+
         foreach ($instances as $class => $instance) {
             $io->write("Execute <info>$class</info>", true, IOInterface::VERBOSE);
             $instance->configure($context, $this);
         }
+    }
+
+    protected function createOptionResolver(ExecutionContext $context): OptionsResolver
+    {
+        $optionResolver = new OptionsResolver();
+
+        $optionResolver->setDefault('document-root', function (Options $options) use ($context) {
+            return $context->getIo()->ask("Define your document root (default 'public'): ", 'public');
+        });
+        $optionResolver->setNormalizer('document-root', function (Options $options, $documentRoot) {
+            return trim($documentRoot, '/');
+        });
+
+        return $optionResolver;
     }
 }
