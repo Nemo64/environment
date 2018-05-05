@@ -89,6 +89,10 @@ class DockerConfigurator implements ConfiguratorInterface
             $make['.PHONY']->addDependency($make['stop']);
             $make['stop']->setDescription("Stop all services.");
             $make['stop']->addCommand('docker-compose down --remove-orphans');
+
+            $make['clean']->addDependency($make['stop']);
+            $make['clean']->addCommand('docker-compose down -v');
+            $make['clean']->addCommand('rm docker-compose.log');
         }
     }
 }
