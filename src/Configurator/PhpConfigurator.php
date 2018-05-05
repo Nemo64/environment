@@ -40,12 +40,13 @@ class PhpConfigurator implements ConfiguratorInterface
         $docker->createDockerfile('Dockerfile-php', [
             "FROM chialab/php:$version-apache",
             'RUN ' . implode(" \\\n && ", [
-                "sed -i 's#/var/www/html#/var/www/public#g' /etc/apache2/sites-enabled/000-default.conf",
+                "sed -i 's#/var/www/html#/var/www\${DOCUMENT_ROOT}#g' /etc/apache2/sites-enabled/000-default.conf",
                 "a2enmod alias deflate expires headers rewrite",
                 "echo 'opcache.enable_file_override=On' >> /usr/local/etc/php/conf.d/php.ini",
                 "echo 'opcache.revalidate_freq=0' >> /usr/local/etc/php/conf.d/php.ini",
             ])
         ]);
+
         $docker->defineService('php', [
             'build' => [
                 'context' => '.',
@@ -58,6 +59,9 @@ class PhpConfigurator implements ConfiguratorInterface
             'user' => 'root:www-data',
             'ports' => [
                 '127.0.0.1:80:80'
+            ],
+            'environment' => [
+                'DOCUMENT_ROOT=/' . $container->getOption('document-root')
             ]
         ]);
     }

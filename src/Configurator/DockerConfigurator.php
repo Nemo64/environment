@@ -4,7 +4,6 @@ namespace Nemo64\Environment\Configurator;
 
 
 use Nemo64\Environment\Area\ChecksumArea;
-use Nemo64\Environment\Configurator\Make\Target;
 use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
 use Symfony\Component\Yaml\Yaml;
@@ -45,11 +44,7 @@ class DockerConfigurator implements ConfiguratorInterface
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
         $area = new ChecksumArea();
-
-        $area->write(
-            fopen($context->getPath(".dockerignore"), 'c+'),
-            '*'
-        );
+        $area->write(fopen($context->getPath(".dockerignore"), 'c+'), '*');
 
         foreach ($this->dockerfiles as $name => $dockerfile) {
             $area->write(
