@@ -4,6 +4,7 @@ namespace Nemo64\Environment;
 
 use Composer\Composer;
 use Composer\IO\NullIO;
+use Composer\Package\RootPackage;
 use Nemo64\Environment\Configurator\ConfiguratorInterface;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
@@ -13,7 +14,9 @@ class ConfiguratorContainerTest extends TestCase
     protected function configure(array $instances)
     {
         $container = new ConfiguratorContainer($instances);
-        $container->configure(new Composer(), new NullIO(), vfsStream::setup()->url());
+        $composer = new Composer();
+        $composer->setPackage(new RootPackage('root/package', '1.0.0', '1.0.0.0'));
+        $container->configure($composer, new NullIO(), vfsStream::setup()->url());
     }
 
     public function testExecute()

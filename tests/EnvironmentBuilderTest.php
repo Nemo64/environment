@@ -5,7 +5,9 @@ namespace Nemo64\Environment;
 use Composer\Composer;
 use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
+use Composer\Package\Link;
 use Composer\Package\PackageInterface;
+use Composer\Package\RootPackage;
 use Composer\Repository\ArrayRepository;
 use Composer\Repository\RepositoryManager;
 use Composer\Script\Event;
@@ -22,6 +24,11 @@ class EnvironmentBuilderTest extends TestCase
             'getLocalRepository' => new ArrayRepository($packages)
         ]);
         $composer->setRepositoryManager($repositoryManager);
+
+        $package = new RootPackage('root/package', '1.0.0', '1.0.0.0');
+        $package->setDevRequires([new Link($package->getName(), EnvironmentBuilder::PACKAGE_NAME)]);
+        $composer->setPackage($package);
+
         return $composer;
     }
 
