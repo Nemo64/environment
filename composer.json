@@ -15,7 +15,8 @@
         "php": "7.1.* || 7.2.*",
         "composer-plugin-api": "^1.1",
         "webmozart/path-util": "^2.3",
-        "symfony/yaml": ">= 2.8, < 5.0"
+        "symfony/yaml": ">= 2.8, < 5.0",
+        "symfony/options-resolver": ">= 2.6, < 5.0"
     },
     "require-dev": {
         "composer/composer": "^1.3",
