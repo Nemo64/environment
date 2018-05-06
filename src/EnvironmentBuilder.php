@@ -55,8 +55,8 @@ class EnvironmentBuilder implements PluginInterface, EventSubscriberInterface
 
         if (!$this->isDevRequirementOf($event->getComposer()->getPackage())) {
             $msg = "nemo64/environment isn't a dev requirement.";
-            $msg .= "\nFor it to build your environment install it as a dev requirement.";
-            $msg .= "\nIf your are building an extension to the envionment, then this message is fine.";
+            $msg .= "\nFor it to build your environment: install it as a dev requirement.";
+            $msg .= "\nIf your are building an extension to the environment, then this is fine.";
             $event->getIO()->write($msg);
             return;
         }
