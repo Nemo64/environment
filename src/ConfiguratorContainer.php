@@ -165,7 +165,7 @@ class ConfiguratorContainer
         $extra[EnvironmentBuilder::PACKAGE_NAME]['options'] = $this->options;
         $composer->getPackage()->setExtra($extra);
         if ($extra != $oldExtra && $io->isInteractive()) {
-            $io->write("options have changed, write compose.json extra section");
+            $io->write("environment options have changed, compose.json extra has been written to.");
             $composerFilePath = trim(getenv('COMPOSER')) ?: $context->getPath('composer.json');
             $composerFile = new JsonFile($composerFilePath, null, $context->getIo());
             $configSource = new JsonConfigSource($composerFile);
