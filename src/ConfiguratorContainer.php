@@ -101,6 +101,11 @@ class ConfiguratorContainer
         return $this->options[$name] ?? null;
     }
 
+    public function setOption(string $name, $value): void
+    {
+        $this->options[$name] = $value;
+    }
+
     private function resolveInfluences(ConfiguratorInterface $configurator): array
     {
         $result = [];
@@ -142,22 +147,25 @@ class ConfiguratorContainer
             }
         }
 
+        // resolve options
         $oldExtra = $extra = $composer->getPackage()->getExtra();
         $this->options = $optionResolver->resolve($extra[EnvironmentBuilder::PACKAGE_NAME]['options'] ?? []);
+
+        // run configurators
+        foreach ($instances as $class => $instance) {
+            $io->write("Execute <info>$class</info>", true, IOInterface::VERBOSE);
+            $instance->configure($context, $this);
+        }
+
+        // persist options
         $extra[EnvironmentBuilder::PACKAGE_NAME]['options'] = $this->options;
         $composer->getPackage()->setExtra($extra);
-
-        if ($extra != $oldExtra) {
+        if ($extra != $oldExtra && $io->isInteractive()) {
             $io->write("options have changed, write compose.json extra section");
             $composerFilePath = trim(getenv('COMPOSER')) ?: $context->getPath('composer.json');
             $composerFile = new JsonFile($composerFilePath, null, $context->getIo());
             $configSource = new JsonConfigSource($composerFile);
             $configSource->addProperty('extra', $extra);
-        }
-
-        foreach ($instances as $class => $instance) {
-            $io->write("Execute <info>$class</info>", true, IOInterface::VERBOSE);
-            $instance->configure($context, $this);
         }
     }
 
