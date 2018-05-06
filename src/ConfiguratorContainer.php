@@ -127,6 +127,8 @@ class ConfiguratorContainer
     public function configure(Composer $composer, IOInterface $io, string $rootDir)
     {
         $instances = [];
+
+        // sort instances so that the influenced instances are in the list first
         foreach ($this->instances as $instance) {
             foreach ($this->resolveInfluences($instance) as $resolvedInfluence) {
                 if (isset($this->instances[$resolvedInfluence])) {
@@ -136,8 +138,6 @@ class ConfiguratorContainer
             $instances[get_class($instance)] = $instance;
         }
 
-        /** @var ConfiguratorInterface[] $instances */
-        $instances = array_reverse($instances);
         $context = new ExecutionContext($composer, $io, $rootDir);
         $optionResolver = $this->createOptionResolver($context);
 
@@ -146,6 +146,10 @@ class ConfiguratorContainer
                 $instance->configureOptions($context, $optionResolver);
             }
         }
+
+        // reverse the order so that the influencers are executed first
+        /** @var ConfiguratorInterface[] $instances */
+        $instances = array_reverse($instances);
 
         // resolve options
         $oldExtra = $extra = $composer->getPackage()->getExtra();

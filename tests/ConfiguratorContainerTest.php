@@ -5,6 +5,7 @@ namespace Nemo64\Environment;
 use Composer\Composer;
 use Composer\IO\NullIO;
 use Composer\Package\RootPackage;
+use Nemo64\Environment\Configurator\ConfigurableConfiguratorInterface;
 use Nemo64\Environment\Configurator\ConfiguratorInterface;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
@@ -40,16 +41,22 @@ class ConfiguratorContainerTest extends TestCase
     {
         $sequence = 0;
 
-        $c1 = $this->getMockBuilder(ConfiguratorInterface::class)->setMockClassName('Class1')->getMock();
+        $c1 = $this->getMockBuilder(ConfigurableConfiguratorInterface::class)->setMockClassName('Class1')->getMock();
         $c1->method('getInfluences')->willReturn([]);
+        $c1->expects($this->once())->method('configureOptions')->willReturnCallback(function () use (&$sequence) {
+            $this->assertEquals(0, $sequence++, "call order");
+        });
         $c1->expects($this->once())->method('configure')->willReturnCallback(function () use (&$sequence) {
-            $this->assertEquals(1, $sequence++, "call order");
+            $this->assertEquals(3, $sequence++, "call order");
         });
 
-        $c2 = $this->getMockBuilder(ConfiguratorInterface::class)->setMockClassName('Class2')->getMock();
+        $c2 = $this->getMockBuilder(ConfigurableConfiguratorInterface::class)->setMockClassName('Class2')->getMock();
         $c2->method('getInfluences')->willReturn([get_class($c1)]);
+        $c2->expects($this->once())->method('configureOptions')->willReturnCallback(function () use (&$sequence) {
+            $this->assertEquals(1, $sequence++, "call order");
+        });
         $c2->expects($this->once())->method('configure')->willReturnCallback(function () use (&$sequence) {
-            $this->assertEquals(0, $sequence++, "call order");
+            $this->assertEquals(2, $sequence++, "call order");
         });
 
         $this->configure([$c1, $c2]);
