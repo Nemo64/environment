@@ -14,6 +14,16 @@ class DockerConfigurator implements ConfiguratorInterface
     private $volumes = [];
     private $dockerfiles = [];
 
+    /**
+     * @var ChecksumArea
+     */
+    private $area;
+
+    public function __construct()
+    {
+        $this->area = new ChecksumArea();
+    }
+
     public function getInfluences(): array
     {
         return [
@@ -43,11 +53,15 @@ class DockerConfigurator implements ConfiguratorInterface
 
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
-        $area = new ChecksumArea();
-        $area->write(fopen($context->getPath(".dockerignore"), 'c+'), '*');
+        // Create the dockerignore file.
+        // In our environment we want nothing to be transferred. currently no update strategy
+        $dockerIgnoreFilename = $context->getPath('.dockerignore');
+        if (!file_exists($dockerIgnoreFilename)) {
+            file_put_contents($dockerIgnoreFilename, '*');
+        }
 
         foreach ($this->dockerfiles as $name => $dockerfile) {
-            $area->write(
+            $this->area->write(
                 fopen($context->getPath($name), 'c+'),
                 implode("\n", $dockerfile)
             );
@@ -58,7 +72,7 @@ class DockerConfigurator implements ConfiguratorInterface
             'services' => $this->services,
             'volumes' => $this->volumes
         ];
-        $area->write(
+        $this->area->write(
             fopen($context->getPath('docker-compose.yml'), 'c+'),
             Yaml::dump($dockerComposeContent, 4, 2)
         );
