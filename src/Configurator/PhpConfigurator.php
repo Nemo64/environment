@@ -58,7 +58,7 @@ class PhpConfigurator implements ConfiguratorInterface
             'working_dir' => '/var/www',
             'user' => 'root:www-data',
             'ports' => [
-                '127.0.0.1:80:80'
+                '80:80'
             ],
             'environment' => [
                 'DOCUMENT_ROOT=/' . $container->getOption('document-root')
