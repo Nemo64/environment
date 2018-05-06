@@ -99,9 +99,15 @@ class DockerConfigurator implements ConfiguratorInterface
             $make['stop']->setDescription("Stop all services.");
             $make['stop']->addCommand('docker-compose down --remove-orphans');
 
+            $make['.PHONY']->addDependency($make['clean']);
             $make['clean']->addDependency($make['stop']);
             $make['clean']->addCommand('docker-compose down -v');
             $make['clean']->addCommand('rm docker-compose.log');
+
+            $make['.PHONY']->addDependency($make['log']);
+            $make['log']->setDescription("Show (and follow) the log files.");
+            $make['log']->setEnvironment('FOLLOW', 1);
+            $make['log']->addCommand('docker-compose logs $(if $(filter 1,$(FOLLOW)), --follow)');
         }
     }
 }
