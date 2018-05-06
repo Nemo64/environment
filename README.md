@@ -58,6 +58,6 @@ And hint to the file in your `composer.json`:
 
 Done. Your `configure` method will be called every time you use composer. You can check if other extensions get installed, read config files. Even ask the user questions using io (but be sure those are only asked once).
 
-### guideline
+### Guideline
 
 If you want your configurator to be useful, make sure it is highly adaptive. The `GitignoreConfigurator` won't remove rules you have made and even preserves comments. Therefor an outside user does not have to learn a new way of configuring a file that is right there. He just adds a rule and it works as expected.
