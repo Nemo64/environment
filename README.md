@@ -9,6 +9,16 @@ This composer plugin aims to be an assist in building your base environment in p
 
 It does that by providing apis to define common config files. It is also highly extendable so you can add your own configurations for what your needs are.
 
+## start a new project
+
+- `mkdir your_project_folder && cd your_project_folder`
+- `composer init -n`
+- `composer require --dev nemo64/environment`
+
+Now control your environment using `make`. To see what you can do run `make help`.
+Basically you want to run `make start` to start your local server and `make stop` to stop it.
+Your webserver is by default available under `localhost:80`.
+
 ## how it works
 
 Other than most scaffold projects, this is a composer plugin and aims to not only create your base files but also to update them.
