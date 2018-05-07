@@ -102,7 +102,7 @@ class DockerConfigurator implements ConfiguratorInterface
             $make['.PHONY']->addDependency($make['clean']);
             $make['clean']->addDependency($make['stop']);
             $make['clean']->addCommand('docker-compose down -v');
-            $make['clean']->addCommand('rm docker-compose.log');
+            $make['clean']->addCommand('rm -f docker-compose.log');
 
             $make['.PHONY']->addDependency($make['log']);
             $make['log']->setDescription("Show (and follow) the log files.");
