@@ -15,7 +15,7 @@ class ComposerConfigurator implements ConfiguratorInterface
         return [
             GitignoreConfigurator::class,
             MakefileConfigurator::class,
-            PhpConfigurator::class,
+            DockerConfigurator::class,
         ];
     }
 
@@ -43,6 +43,13 @@ class ComposerConfigurator implements ConfiguratorInterface
         $make['clean']->addCommand('rm -rf ' . escapeshellarg($vendorDir));
 
         $context->info("install and clean command installed");
+
+        $docker = $container->get(DockerConfigurator::class);
+        $docker->defineService('php', [
+            'volumes' => [
+                '~/.composer:/root/.composer:cached'
+            ]
+        ]);
     }
 
     protected function configureGitignore(ExecutionContext $context, ConfiguratorContainer $container): void
