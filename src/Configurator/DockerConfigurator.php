@@ -107,7 +107,8 @@ class DockerConfigurator implements ConfiguratorInterface
             $make['.PHONY']->addDependency($make['log']);
             $make['log']->setDescription("Show (and follow) the log files.");
             $make['log']->setEnvironment('FOLLOW', 1);
-            $make['log']->addCommand('docker-compose logs $(if $(filter 1,$(FOLLOW)), --follow)');
+            $make['log']->setEnvironment('LINES', 20);
+            $make['log']->addCommand('docker-compose logs --tail=$(LINES) $(if $(filter 1,$(FOLLOW)),--follow)');
         }
     }
 }
