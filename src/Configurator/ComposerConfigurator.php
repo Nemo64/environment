@@ -35,10 +35,11 @@ class ComposerConfigurator implements ConfiguratorInterface
 
         $vendorDir = $context->getComposer()->getConfig()->get('vendor-dir', Config::RELATIVE_PATHS);
 
-        $make->setEnvironment('COMPOSER', 'docker-compose run --rm --no-deps php composer');
+        // i can't name the composer variable "COMPOSER" since this environment variable is used by composer itself
+        $make->setEnvironment('COMPOSER_CMD', 'docker-compose run --rm --no-deps php composer');
         $make['install']->addDependency($make[$vendorDir]);
         $make[$vendorDir]->addDependencyString('$(wildcard composer.*)');
-        $make[$vendorDir]->addCommand("$(COMPOSER) install");
+        $make[$vendorDir]->addCommand("$(COMPOSER_CMD) install");
 
         $make['clean']->addCommand('rm -rf ' . escapeshellarg($vendorDir));
 
