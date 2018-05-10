@@ -21,8 +21,27 @@ class ComposerConfigurator implements ConfiguratorInterface
 
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
+        $this->configureShortcutScript($context, $container);
         $this->configureMake($context, $container);
         $this->configureGitignore($context, $container);
+    }
+
+    protected function configureShortcutScript(ExecutionContext $context, ConfiguratorContainer $container): void
+    {
+        $shortcutFilename = $context->getPath('composer');
+        if (file_exists($shortcutFilename)) {
+            $context->info("Shortcut script already exists");
+            return;
+        }
+
+        file_put_contents($shortcutFilename, <<<SHORTCUT
+#!/usr/bin/env sh
+
+docker-compose run --rm --no-deps --user www-data php composer "$@"
+SHORTCUT
+        );
+        chmod($shortcutFilename, 0755);
+        $context->info("Created shortcut script");
     }
 
     protected function configureMake(ExecutionContext $context, ConfiguratorContainer $container): void
@@ -36,7 +55,7 @@ class ComposerConfigurator implements ConfiguratorInterface
         $vendorDir = $context->getComposer()->getConfig()->get('vendor-dir', Config::RELATIVE_PATHS);
 
         // i can't name the composer variable "COMPOSER" since this environment variable is used by composer itself
-        $make->setEnvironment('COMPOSER_CMD', 'docker-compose run --rm --no-deps php composer');
+        $make->setEnvironment('COMPOSER_CMD', './composer');
         $make['install']->addDependency($make[$vendorDir]);
         $make[$vendorDir]->addDependencyString('$(wildcard composer.*)');
         $make[$vendorDir]->addCommand("$(COMPOSER_CMD) install");
