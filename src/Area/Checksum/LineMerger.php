@@ -7,6 +7,7 @@ class LineMerger
 {
     const HASH_LENGTH = 4;
 
+    /** @noinspection PhpUnusedPrivateMethodInspection */
     private static function createLineChecksum(string $line): string
     {
         return substr(base64_encode(sha1($line, true)), 0, static::HASH_LENGTH);
@@ -14,12 +15,23 @@ class LineMerger
 
     public static function createChecksum(string $content): string
     {
-        return implode('', array_map('static::createLineChecksum', explode("\n", $content)));
+        return implode('', array_map('self::createLineChecksum', explode("\n", $content)));
     }
 
     private static function arraySearch(array $haystack, $needle, int $offset): int
     {
         for ($i = $offset; $i < count($haystack); ++$i) {
+            if ($haystack[$i] === $needle) {
+                return $i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static function arraySearchBackwards(array $haystack, $needle, int $offset, int $low = 0): int
+    {
+        for ($i = $offset; $i >= $low; --$i) {
             if ($haystack[$i] === $needle) {
                 return $i;
             }
@@ -34,6 +46,7 @@ class LineMerger
         $curContent = empty($curContent) ? [] : explode("\n", $curContent);
         $newContent = empty($newContent) ? [] : explode("\n", $newContent);
         $curChecksum = array_map('static::createLineChecksum', $curContent);
+        $newChecksum = array_map('static::createLineChecksum', $newContent);
 
         $old = 0;
         $cur = 0;
@@ -54,6 +67,23 @@ class LineMerger
                 break;
             }
 
+            // handle new content being moved backwards
+            $movedIndex = self::arraySearch($oldChecksum, $newChecksum[$new], $old);
+            if ($movedIndex >= 0) {
+                $movement = $movedIndex - $old;
+                $old += $movement;
+                $cur += $movement;
+            }
+
+            // handle new content being moved forward
+            $movedIndex = self::arraySearch($newChecksum, $oldChecksum[$old], $new);
+            if ($movedIndex > $new) {
+                array_push($result, ...array_slice($newContent, $new, $movedIndex - $new));
+                $new = $movedIndex;
+                continue;
+            }
+
+            // handle lines being added/replaced by the user
             $nextMatchingLine = self::arraySearch($curChecksum, $oldChecksum[$old], $cur);
             if ($nextMatchingLine >= 0) {
                 $offset = $nextMatchingLine - $cur;

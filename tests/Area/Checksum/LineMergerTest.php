@@ -74,6 +74,36 @@ class LineMergerTest extends TestCase
                 "diff1\ndiff2\ndiff3",
                 "line1\nline2\nline3",
                 "diff1\ndiff2\ndiff3",
+            ],
+            'moveAddedLineForward' => [
+                "line1\nline2\nline3",
+                "line1\nline1.5\nline2\nline3",
+                "line0\nline1\nline2\nline3",
+                "line0\nline1\nline1.5\nline2\nline3",
+            ],
+            'moveAddedLineBackward' => [
+                "line1\nline2\nline3",
+                "line1\nline2\nline2.5\nline3",
+                "line2\nline3",
+                "line2\nline2.5\nline3",
+            ],
+            'moveEditedLine' => [
+                "line1\nline2\nline3",
+                "line1\nline2.5\nline3",
+                "line0\nline1\nline2\nline3",
+                "line0\nline1\nline2.5\nline3",
+            ],
+            'moveEditedLineBackward' => [
+                "line1\nline2\nline3",
+                "line1\nline2.5\nline3",
+                "line2\nline3",
+                "line2.5\nline3",
+            ],
+            'removeEditedLine' => [
+                "line1\nline2\nline3",
+                "line1\nline2.5\nline3",
+                "line1\nline3",
+                "line1\nline3",
             ]
         ];
     }
