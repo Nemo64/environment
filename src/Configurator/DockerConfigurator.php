@@ -10,6 +10,41 @@ use Symfony\Component\Yaml\Yaml;
 
 class DockerConfigurator implements ConfiguratorInterface
 {
+    /**
+     * To make editing a file a better experience, i create those keys below every time in the same order.
+     * If the user adds for example a link and you add a link too, then they'll get inserted in the same place.
+     * If I wouldn't  do that, then your "links" attribute might be somewhere else then the user defined "links".
+     * That would result in the file having 2 "links" attributes which is invalid in yaml and even if it wasn't: it wouldn't work.
+     *
+     * There is some special treatment for the "image" and "build" keys. As soon as one is defined, the other one is removed.
+     * Defining them here results in them being on top which is nicer to look at.
+     */
+    const DEFAULT_SERVICE_FIELDS = [
+        'image' => null,
+        'build' => null,
+        'links' => [],
+        'ports' => [],
+        'volumes' => [],
+        'tmpfs' => [],
+        'environment' => [],
+    ];
+
+    /**
+     * To make the file even nicer to look at (and in some cases even work) i add some characteristics using regex here.
+     */
+    const REPLACEMENTS = [
+
+        // add spaces between first and second level items
+        '/^((  )?\w+:[^\n]*)$/m' => "\n\\1",
+
+        // remove quotes around strings with a colon in them
+        // don't remove them around numbers since it might have a purpose that they are quoted (like the compose version)
+        '/\'(?![\d\.]+\')((:?[^\n#>]*)+)\'/' => "\\1",
+
+        // swap empty objects with empty arrays
+        '/(    (links|ports|volumes|tmpfs|environment)):\s*\{\s*\}/' => "\\1: []",
+    ];
+
     private $services = [];
     private $volumes = [];
     private $dockerfiles = [];
@@ -34,12 +69,30 @@ class DockerConfigurator implements ConfiguratorInterface
 
     public function defineService(string $name, array $definition): void
     {
-        $this->services[$name] = array_merge_recursive($this->services[$name] ?? [], $definition);
+        if (!isset($this->services[$name])) {
+            $this->services[$name] = self::DEFAULT_SERVICE_FIELDS;
+        }
+
+        foreach ($definition as $key => $value) {
+            if (isset($this->services[$name][$key]) && is_array($this->services[$name][$key])) {
+                $this->services[$name][$key] = array_merge($this->services[$name][$key], $value);
+            } else {
+                $this->services[$name][$key] = $value;
+            }
+        }
+
+        if (isset($this->services[$name]['build'])) {
+            unset($this->services[$name]['image']);
+        }
+
+        if (isset($this->services[$name]['image'])) {
+            unset($this->services[$name]['build']);
+        }
     }
 
     public function defineVolume(string $name, array $definition = []): void
     {
-        $this->volumes[$name] = array_merge_recursive($this->services[$name] ?? [], $definition);
+        $this->volumes[$name] = array_replace_recursive($this->services[$name] ?? [], $definition);
     }
 
     public function createDockerfile(string $name, array $lines): void
@@ -72,9 +125,12 @@ class DockerConfigurator implements ConfiguratorInterface
             'services' => $this->services,
             'volumes' => $this->volumes
         ];
+        $yaml = Yaml::dump($dockerComposeContent, 4, 2);
+        $yaml = preg_replace(array_keys(self::REPLACEMENTS), array_values(self::REPLACEMENTS), $yaml);
+
         $this->area->write(
             fopen($context->getPath('docker-compose.yml'), 'c+'),
-            Yaml::dump($dockerComposeContent, 4, 2)
+            $yaml
         );
 
         $make = $container->get(MakefileConfigurator::class);
