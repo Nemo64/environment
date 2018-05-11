@@ -68,7 +68,7 @@ class LineMerger
             }
 
             // handle new content being moved backwards
-            $movedIndex = self::arraySearch($oldChecksum, $newChecksum[$new], $old);
+            $movedIndex = self::arraySearch($oldChecksum, $newChecksum[$new] ?? null, $old);
             if ($movedIndex >= 0) {
                 $movement = $movedIndex - $old;
                 $old += $movement;
