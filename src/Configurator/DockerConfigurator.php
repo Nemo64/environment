@@ -39,7 +39,8 @@ class DockerConfigurator implements ConfiguratorInterface
 
         // remove quotes around strings with a colon in them
         // don't remove them around numbers since it might have a purpose that they are quoted (like the compose version)
-        '/\'(?![\d\.]+\')((:?[^\n#>]*)+)\'/' => "\\1",
+        // the first character must not be a { or [ or else yaml might interpret it as an object/array
+        '/\'(?![\d\.]+\')(?:[\[\{])((:?[^\n#>]*)+)\'/' => "\\1",
 
         // swap empty objects with empty arrays
         '/(    (links|ports|volumes|tmpfs|environment)):\s*\{\s*\}/' => "\\1: []",
