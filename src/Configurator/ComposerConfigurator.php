@@ -6,6 +6,7 @@ namespace Nemo64\Environment\Configurator;
 use Composer\Config;
 use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
+use Nemo64\Environment\FileUpdater\WriteOnceFileUpdater;
 use Webmozart\PathUtil\Path;
 
 class ComposerConfigurator implements ConfiguratorInterface
@@ -28,20 +29,10 @@ class ComposerConfigurator implements ConfiguratorInterface
 
     protected function configureShortcutScript(ExecutionContext $context, ConfiguratorContainer $container): void
     {
-        $shortcutFilename = $context->getPath('composer');
-        if (file_exists($shortcutFilename)) {
-            $context->info("Shortcut script already exists");
-            return;
-        }
-
-        file_put_contents($shortcutFilename, <<<SHORTCUT
-#!/usr/bin/env sh
-
-docker-compose run --rm --no-deps --user www-data php composer "$@"
-SHORTCUT
-        );
-        chmod($shortcutFilename, 0755);
-        $context->info("Created shortcut script");
+        $shortcut = new WriteOnceFileUpdater($context->getIo(), $context->getPath('composer'));
+        $command = 'docker-compose run --rm --no-deps --user www-data php composer "$@"';
+        $shortcut->write("#!/usr/bin/env sh\n\n$command");
+        chmod($shortcut->getFilename(), 0755);
     }
 
     protected function configureMake(ExecutionContext $context, ConfiguratorContainer $container): void

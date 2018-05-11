@@ -6,6 +6,7 @@ namespace Nemo64\Environment\Configurator;
 use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
 use Nemo64\Environment\FileUpdater\ChecksumFileUpdater;
+use Nemo64\Environment\FileUpdater\WriteOnceFileUpdater;
 use Symfony\Component\Yaml\Yaml;
 
 class DockerConfigurator implements ConfiguratorInterface
@@ -99,10 +100,8 @@ class DockerConfigurator implements ConfiguratorInterface
     {
         // Create the dockerignore file.
         // In our environment we want nothing to be transferred. currently no update strategy
-        $dockerIgnoreFilename = $context->getPath('.dockerignore');
-        if (!file_exists($dockerIgnoreFilename)) {
-            file_put_contents($dockerIgnoreFilename, '*');
-        }
+        $dockerIgnore = new WriteOnceFileUpdater($context->getIo(), $context->getPath('.dockerignore'));
+        $dockerIgnore->write('*');
 
         foreach ($this->dockerfiles as $name => $dockerfile) {
             $file = new ChecksumFileUpdater($context->getIo(), $context->getPath($name));

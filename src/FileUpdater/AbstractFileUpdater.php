@@ -23,6 +23,11 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
         $this->filename = $filename;
     }
 
+    public function getFilename(): string
+    {
+        return $this->filename;
+    }
+
     abstract public function canMerge(): bool;
 
     abstract protected function doRead(): string;

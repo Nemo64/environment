@@ -41,6 +41,5 @@ abstract class AbstractFileUpdaterTest extends TestCase
         $testContent = "hallo\nworld";
         $instance->write($testContent);
         $this->assertEquals($testContent, $instance->read());
-        $this->assertTrue($instance->canMerge());
     }
 }
