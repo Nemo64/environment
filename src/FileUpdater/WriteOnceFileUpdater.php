@@ -23,8 +23,9 @@ class WriteOnceFileUpdater extends AbstractFileUpdater
         return true;
     }
 
-    protected function handleConflict(string $content): void
+    protected function handleConflict(string $content): bool
     {
         $this->io->write("File <info>{$this->filename}</info> already exists.", IOInterface::VERBOSE);
+        return false;
     }
 }

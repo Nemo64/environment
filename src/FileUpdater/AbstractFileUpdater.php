@@ -43,23 +43,24 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
 
     abstract protected function doWrite(string $content): bool;
 
-    final public function write(string $content): void
+    final public function write(string $content): bool
     {
         if (!$this->canMerge()) {
-            $this->handleConflict($content);
-            return;
+            return $this->handleConflict($content);
         }
 
         if (!$this->doWrite($content)) {
-            return;
+            return false;
         }
 
         $this->io->write("Updated file <info>{$this->filename}</info>");
+        return true;
     }
 
-    protected function handleConflict(string $content): void
+    protected function handleConflict(string $content): bool
     {
         $this->io->writeError("File <info>{$this->filename}</info> can't be merged. ~ignored", true, IOInterface::VERBOSE);
         $this->io->write("The content of the file would have been:\n$content\n", true, IOInterface::VERY_VERBOSE);
+        return true;
     }
 }
