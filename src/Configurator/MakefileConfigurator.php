@@ -3,12 +3,11 @@
 namespace Nemo64\Environment\Configurator;
 
 
-use Composer\IO\IOInterface;
-use Nemo64\Environment\Area\ChecksumArea;
 use Nemo64\Environment\Configurator\Make\EnvironmentContainer;
 use Nemo64\Environment\Configurator\Make\Target;
 use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
+use Nemo64\Environment\FileUpdater\ChecksumFileUpdater;
 
 class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
 {
@@ -119,8 +118,7 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
      */
     protected function writeFile(ExecutionContext $context): void
     {
-        $makefileArea = new ChecksumArea();
-        $makefileHandle = fopen($context->getPath('Makefile'), 'c+');
+        $fileUpdater = new ChecksumFileUpdater($context->getIo(), $context->getPath('Makefile'));
 
         $content = $this->getEnvironmentVariableString() . "\n";
 
@@ -132,7 +130,6 @@ class MakefileConfigurator implements ConfiguratorInterface, \ArrayAccess
             $content .= "\n" . (string)$target . "\n";
         }
 
-        $makefileArea->write($makefileHandle, $content);
-        $context->getIo()->write("Makefile rewritten.", true, IOInterface::VERBOSE);
+        $fileUpdater->write($content);
     }
 }

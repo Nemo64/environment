@@ -1,6 +1,6 @@
 <?php
 
-namespace Nemo64\Environment\Area\Checksum;
+namespace Nemo64\Environment\FileUpdater\Checksum;
 
 
 class LineMerger

@@ -3,9 +3,9 @@
 namespace Nemo64\Environment\Configurator;
 
 
-use Nemo64\Environment\Area\ChecksumArea;
 use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
+use Nemo64\Environment\FileUpdater\ChecksumFileUpdater;
 use Symfony\Component\Yaml\Yaml;
 
 class DockerConfigurator implements ConfiguratorInterface
@@ -49,16 +49,6 @@ class DockerConfigurator implements ConfiguratorInterface
     private $services = [];
     private $volumes = [];
     private $dockerfiles = [];
-
-    /**
-     * @var ChecksumArea
-     */
-    private $area;
-
-    public function __construct()
-    {
-        $this->area = new ChecksumArea();
-    }
 
     public function getInfluences(): array
     {
@@ -115,10 +105,8 @@ class DockerConfigurator implements ConfiguratorInterface
         }
 
         foreach ($this->dockerfiles as $name => $dockerfile) {
-            $this->area->write(
-                fopen($context->getPath($name), 'c+'),
-                implode("\n", $dockerfile)
-            );
+            $file = new ChecksumFileUpdater($context->getIo(), $context->getPath($name));
+            $file->write(implode("\n", $dockerfile));
         }
 
         $dockerComposeContent = [
@@ -129,10 +117,8 @@ class DockerConfigurator implements ConfiguratorInterface
         $yaml = Yaml::dump($dockerComposeContent, 4, 2);
         $yaml = preg_replace(array_keys(self::REPLACEMENTS), array_values(self::REPLACEMENTS), $yaml);
 
-        $this->area->write(
-            fopen($context->getPath('docker-compose.yml'), 'c+'),
-            $yaml
-        );
+        $dockerCompose = new ChecksumFileUpdater($context->getIo(), $context->getPath('docker-compose.yml'));
+        $dockerCompose->write($yaml);
 
         $make = $container->get(MakefileConfigurator::class);
         if ($make !== null) {

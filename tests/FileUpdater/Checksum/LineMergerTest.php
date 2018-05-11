@@ -1,7 +1,8 @@
 <?php
 
-namespace Nemo64\Environment\Area\Checksum;
+namespace Nemo64\Environment\FileUpdater\Checksum;
 
+use Nemo64\Environment\FileUpdater\Checksum\LineMerger;
 use PHPUnit\Framework\TestCase;
 
 class LineMergerTest extends TestCase
@@ -118,7 +119,7 @@ class LineMergerTest extends TestCase
     public function testMerge($oldContent, $userContent, $newContent, $expectResult)
     {
         $checksum = $oldContent !== null
-            ? implode('', array_map('Nemo64\Environment\Area\Checksum\LineMerger::createChecksum', explode("\n", $oldContent)))
+            ? implode('', array_map('Nemo64\Environment\FileUpdater\Checksum\LineMerger::createChecksum', explode("\n", $oldContent)))
             : null;
         $this->assertEquals($expectResult, LineMerger::mergeContent($checksum, $userContent, $newContent));
     }
