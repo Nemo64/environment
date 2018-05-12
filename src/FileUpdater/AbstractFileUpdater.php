@@ -49,6 +49,12 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
             return $this->handleConflict($content);
         }
 
+        $dirname = dirname($this->filename);
+        if (!is_dir($dirname)) {
+            mkdir($dirname, 0777, true);
+            $this->io->write("Create folder <info>$dirname</info>");
+        }
+
         if (!$this->doWrite($content)) {
             return false;
         }

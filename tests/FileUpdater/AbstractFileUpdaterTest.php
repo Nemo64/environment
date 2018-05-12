@@ -37,9 +37,32 @@ abstract class AbstractFileUpdaterTest extends TestCase
     {
         $instance = $this->createInstance(Path::join($this->rootDir->url(), 'file'));
         $this->assertTrue($instance->canMerge());
+        $this->assertFalse($this->rootDir->hasChild('file'));
 
         $testContent = "hallo\nworld";
         $instance->write($testContent);
         $this->assertEquals($testContent, $instance->read());
+        $this->assertTrue($this->rootDir->hasChild('file'));
+    }
+
+    public function testNotExistingDirectory()
+    {
+        $url = Path::join($this->rootDir->url(), 'folder/file');
+        $instance = $this->createInstance($url);
+        $this->assertTrue($instance->canMerge());
+        $this->assertFalse($this->rootDir->hasChild('folder'));
+
+        $testContent = "hallo\nworld";
+        $instance->write($testContent);
+        $this->assertEquals($testContent, $instance->read());
+        $this->assertTrue($this->rootDir->hasChild('folder'));
+    }
+
+    public function testReadNoneExistent()
+    {
+        $url = Path::join($this->rootDir->url(), 'file');
+        $instance = $this->createInstance($url);
+        $this->assertNull($instance->read());
+        $this->assertFalse($this->rootDir->hasChild('file'));
     }
 }
