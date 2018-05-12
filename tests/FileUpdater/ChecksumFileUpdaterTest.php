@@ -19,10 +19,10 @@ class ChecksumFileUpdaterTest extends AbstractFileUpdaterTest
         $instance = $this->createInstance($filename);
 
         $this->assertTrue($instance->canMerge());
-        $instance->write(implode("\n", [
+        $this->assertTrue($instance->write(implode("\n", [
             'memory_limit=128M',
             'display_errors=Off',
-        ]));
+        ])));
 
         $this->assertTrue($instance->canMerge());
         $this->assertEquals(
@@ -36,11 +36,11 @@ class ChecksumFileUpdaterTest extends AbstractFileUpdaterTest
         file_put_contents($filename, str_replace('Off', 'On', file_get_contents($filename)));
 
         $this->assertTrue($instance->canMerge());
-        $instance->write(implode("\n", [
+        $this->assertTrue($instance->write(implode("\n", [
             'memory_limit=256M',
             'display_errors=Off',
             '# an additional line',
-        ]));
+        ])));
 
         $this->assertTrue($instance->canMerge());
         $this->assertEquals(
@@ -59,7 +59,7 @@ class ChecksumFileUpdaterTest extends AbstractFileUpdaterTest
         $area = $this->createInstance($filename);
         file_put_contents($filename, "test\ntest");
 
-        $area->write("foo\nfoo");
+        $this->assertFalse($area->write("foo\nfoo"));
         $this->assertEquals("test\ntest", $area->read());
     }
 }

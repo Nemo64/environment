@@ -40,7 +40,7 @@ abstract class AbstractFileUpdaterTest extends TestCase
         $this->assertFalse($this->rootDir->hasChild('file'));
 
         $testContent = "hallo\nworld";
-        $instance->write($testContent);
+        $this->assertTrue($instance->write($testContent));
         $this->assertEquals($testContent, $instance->read());
         $this->assertTrue($this->rootDir->hasChild('file'));
     }
@@ -53,7 +53,7 @@ abstract class AbstractFileUpdaterTest extends TestCase
         $this->assertFalse($this->rootDir->hasChild('folder'));
 
         $testContent = "hallo\nworld";
-        $instance->write($testContent);
+        $this->assertTrue($instance->write($testContent));
         $this->assertEquals($testContent, $instance->read());
         $this->assertTrue($this->rootDir->hasChild('folder'));
     }
