@@ -48,6 +48,7 @@ class ComposerConfigurator implements ConfiguratorInterface
         // i can't name the composer variable "COMPOSER" since this environment variable is used by composer itself
         $make->setEnvironment('COMPOSER_CMD', './composer');
         $make['install']->addDependency($make[$vendorDir]);
+        $make[$vendorDir]->addDependencyString('docker-compose.log');
         $make[$vendorDir]->addDependencyString('$(wildcard composer.*)');
         $make[$vendorDir]->addCommand("$(COMPOSER_CMD) install");
 
