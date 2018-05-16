@@ -152,8 +152,7 @@ class DockerConfigurator implements ConfiguratorInterface
 
             $make['.PHONY']->addDependency($make['log']);
             $make['log']->setDescription("Show (and follow) the log files.");
-            $make['log']->setEnvironment('LOG_PARAMS', '--tail=20 --follow');
-            $make['log']->addCommand('docker-compose logs $(LOG_PARAMS)');
+            $make['log']->addCommand('docker-compose logs --tail=20 --follow');
         }
     }
 }
