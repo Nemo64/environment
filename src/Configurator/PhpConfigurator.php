@@ -61,7 +61,7 @@ class PhpConfigurator implements ConfiguratorInterface
                 '${WEB_PORT:-80}:80'
             ],
             'environment' => [
-                'DOCUMENT_ROOT=/' . $container->getOption('document-root')
+                'DOCUMENT_ROOT=' . $container->getOption('document-root')
             ]
         ]);
     }
