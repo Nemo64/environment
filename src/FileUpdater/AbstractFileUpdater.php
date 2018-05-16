@@ -67,6 +67,6 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
     {
         $this->io->writeError("File <info>{$this->filename}</info> can't be merged. ~ignored", true, IOInterface::VERBOSE);
         $this->io->write("The content of the file would have been:\n$content\n", true, IOInterface::VERY_VERBOSE);
-        return true;
+        return false;
     }
 }

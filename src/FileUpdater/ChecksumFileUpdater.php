@@ -21,7 +21,7 @@ class ChecksumFileUpdater extends AbstractFileUpdater
         rewind($handle);
 
         $firstLine = fgets($handle);
-        if (substr($firstLine, 0, strlen($this->comment))) {
+        if (substr($firstLine, 0, strlen($this->comment)) === $this->comment) {
             return substr($firstLine, strlen($this->comment), -1);
         }
 
@@ -35,7 +35,8 @@ class ChecksumFileUpdater extends AbstractFileUpdater
         }
 
         $handle = fopen($this->filename, 'r');
-        $result = $this->getChecksum($handle) !== null;
+        $checksum = $this->getChecksum($handle);
+        $result = $checksum !== null;
         fclose($handle);
         return $result;
     }
@@ -63,15 +64,50 @@ class ChecksumFileUpdater extends AbstractFileUpdater
 
         $oldContent = stream_get_contents($handle);
         $result = LineMerger::mergeContent($checksum, $oldContent, $content);
-        if ($result === $oldContent) {
+        if ($result === $oldContent && $checksum !== null) {
             return false;
         }
 
-        $result = $this->comment . LineMerger::createChecksum($content) . "\n" . $result;
+        $result = $this->getChecksumComment($content) . "\n" . $result;
         rewind($handle);
         fwrite($handle, $result);
         ftruncate($handle, strlen($result));
         fclose($handle);
         return true;
     }
+
+    protected function handleConflict(string $content): bool
+    {
+        $answer = $this->io->select("The file {$this->filename} already exists but can't be managed. What should be done?", [
+            'a' => "Append the managed content. You'll probably need to manually fix the file",
+            'm' => "Try to merge the configuration. This works best when the checksum has been removed but might return garbage otherwise.",
+            'i' => "Ignore, just add the checksum so this question doesn't come up again",
+        ], false);
+
+        switch ($answer) {
+            case 'a':
+                $currentContent = file_get_contents($this->filename);
+                $checksumComment = $this->getChecksumComment($content);
+                file_put_contents($this->filename, "$checksumComment\n$currentContent\n$content");
+                return true;
+            case 'm':
+                return $this->doWrite($content);
+            case 'i':
+                $currentContent = file_get_contents($this->filename);
+                $checksumComment = $this->getChecksumComment($content);
+                return file_put_contents($this->filename, "$checksumComment\n$currentContent") !== false;
+            default:
+                return parent::handleConflict($content);
+        }
+    }
+
+    /**
+     * @param string $content
+     * @return string
+     */
+    public function getChecksumComment(string $content): string
+    {
+        return $this->comment . LineMerger::createChecksum($content);
+    }
+
 }

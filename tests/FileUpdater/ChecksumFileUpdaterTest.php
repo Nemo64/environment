@@ -8,6 +8,11 @@ use Webmozart\PathUtil\Path;
 
 class ChecksumFileUpdaterTest extends AbstractFileUpdaterTest
 {
+    /**
+     * @param string $filename
+     * @param IOInterface|null $io
+     * @return ChecksumFileUpdater
+     */
     public function createInstance(string $filename, IOInterface $io = null): AbstractFileUpdater
     {
         return new ChecksumFileUpdater($io ?? new NullIO(), $filename);
@@ -61,5 +66,34 @@ class ChecksumFileUpdaterTest extends AbstractFileUpdaterTest
 
         $this->assertFalse($area->write("foo\nfoo"));
         $this->assertEquals("test\ntest", $area->read());
+    }
+
+    public static function conflictDataProvider()
+    {
+        return [
+            ['a', "user content", "environment content", "user content\nenvironment content"],
+            ['m', "line1\nline2", "line2", "line1\nline2"],
+            ['i', "line1\nline2", "line3", "line1\nline2"],
+        ];
+    }
+
+    /**
+     * @dataProvider conflictDataProvider
+     */
+    public function testConflict($method, $userContent, $envContent, $expectedResult)
+    {
+        $filename = Path::join($this->rootDir->url(), 'file');
+        file_put_contents($filename, $userContent);
+
+        $io = $this->createMock(IOInterface::class);
+        $io->expects($this->once())->method('select')->willReturn($method);
+        $updater = $this->createInstance($filename, $io);
+        $this->assertFalse($updater->canMerge());
+
+        $updater->write($envContent);
+        $this->assertEquals(
+            $updater->getChecksumComment($envContent) . "\n$expectedResult",
+            file_get_contents($filename)
+        );
     }
 }
