@@ -157,7 +157,7 @@ class ConfiguratorContainer
 
         // run configurators
         foreach ($instances as $class => $instance) {
-            $io->write("Execute <info>$class</info>", true, IOInterface::VERBOSE);
+            $io->write("Execute <fg=magenta>$class</>", true, IOInterface::VERBOSE);
             $instance->configure($context, $this);
         }
 
