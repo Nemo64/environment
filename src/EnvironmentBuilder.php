@@ -85,5 +85,9 @@ class EnvironmentBuilder implements PluginInterface, EventSubscriberInterface
 
     public function activate(Composer $composer, IOInterface $io)
     {
+        $packageName = self::PACKAGE_NAME;
+        $io->write("<bg=yellow;fg=black>Caution: This project is managed by the $packageName plugin</>");
+        $io->write("Some files may be changed while running composer commands");
+        $io->write("To see what checks are performed, run composer install -v");
     }
 }
