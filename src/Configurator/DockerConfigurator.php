@@ -3,6 +3,7 @@
 namespace Nemo64\Environment\Configurator;
 
 
+use Nemo64\Environment\Configurator\Make\Target;
 use Nemo64\Environment\ConfiguratorContainer;
 use Nemo64\Environment\ExecutionContext;
 use Nemo64\Environment\FileUpdater\ChecksumFileUpdater;
@@ -134,11 +135,13 @@ class DockerConfigurator implements ConfiguratorInterface
             }
 
             $make['.PHONY']->addDependency($make['start']);
+            $make['start']->setPriority(500);
             $make['start']->setDescription("Start all services.");
             $make['start']->addDependency($make['install']);
             $make['start']->addCommand('docker-compose up --detach');
 
             $make['.PHONY']->addDependency($make['stop']);
+            $make['stop']->setPriority(500);
             $make['stop']->setDescription("Stop all services.");
             $make['stop']->addCommand('docker-compose down --remove-orphans');
 
