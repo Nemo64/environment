@@ -86,8 +86,17 @@ class EnvironmentBuilder implements PluginInterface, EventSubscriberInterface
     public function activate(Composer $composer, IOInterface $io)
     {
         $packageName = self::PACKAGE_NAME;
-        $io->write("<bg=yellow;fg=black>Caution: This project is managed by the $packageName plugin</>");
-        $io->write("Some files may be changed while running composer commands");
-        $io->write("To see what checks are performed, run composer install -v");
+        $io->write([
+            "<bg=yellow;fg=black>Caution: This project is managed by the $packageName plugin</>",
+            "Some files may be changed while running composer commands",
+            "To see what checks are performed, run composer install -v",
+        ]);
+
+        if (getenv('PLATFORM') !== 'Docker') {
+            $io->write([
+                "<error>The composer used is not inside the docker container.</error>",
+                "<error>Prefer running composer using the ./composer command.</error>",
+            ]);
+        }
     }
 }
