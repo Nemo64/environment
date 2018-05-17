@@ -4,6 +4,7 @@ namespace Nemo64\Environment\FileUpdater;
 
 
 use Composer\IO\IOInterface;
+use Webmozart\PathUtil\Path;
 
 abstract class AbstractFileUpdater implements FileUpdaterInterface
 {
@@ -11,6 +12,11 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
      * @var string
      */
     protected $filename;
+
+    /**
+     * @var string
+     */
+    protected $name;
 
     /**
      * @var IOInterface
@@ -21,6 +27,12 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
     {
         $this->io = $io;
         $this->filename = $filename;
+
+        if (Path::isBasePath(getcwd(), $this->filename)) {
+            $this->name = Path::makeRelative($this->filename, getcwd());
+        } else {
+            $this->name = $this->filename;
+        }
     }
 
     public function getFilename(): string
@@ -59,13 +71,13 @@ abstract class AbstractFileUpdater implements FileUpdaterInterface
             return false;
         }
 
-        $this->io->write("Updated file <info>{$this->filename}</info>");
+        $this->io->write("Updated file <info>{$this->name}</info>");
         return true;
     }
 
     protected function handleConflict(string $content): bool
     {
-        $this->io->writeError("File <info>{$this->filename}</info> can't be merged. ~ignored", true, IOInterface::VERBOSE);
+        $this->io->writeError("File <info>{$this->name}</info> can't be merged. ~ignored", true, IOInterface::VERBOSE);
         $this->io->write("The content of the file would have been:\n$content\n", true, IOInterface::VERY_VERBOSE);
         return false;
     }

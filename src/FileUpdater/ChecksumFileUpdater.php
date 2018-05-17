@@ -78,7 +78,7 @@ class ChecksumFileUpdater extends AbstractFileUpdater
 
     protected function handleConflict(string $content): bool
     {
-        $answer = $this->io->select("The file {$this->filename} already exists but can't be managed. What should be done?", [
+        $answer = $this->io->select("The file {$this->name} already exists but can't be managed. What should be done?", [
             'a' => "Append the managed content. You'll probably need to manually fix the file",
             'm' => "Try to merge the configuration. This works best when the checksum has been removed but might return garbage otherwise.",
             'i' => "Ignore, just add the checksum so this question doesn't come up again",
