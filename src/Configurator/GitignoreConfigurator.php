@@ -64,13 +64,14 @@ class GitignoreConfigurator implements ConfiguratorInterface
 
     public function configure(ExecutionContext $context, ConfiguratorContainer $container): void
     {
-        $this->update($context->getPath('.gitignore'));
+        $path = $context->getPath('.gitignore');
+        $this->update($path);
 
         if (empty($this->rules)) {
-            $context->info("No new gitignore rules");
+            $context->info("File <info>$path</info> was not modified.");
         } else {
             foreach ($this->rules as $rule) {
-                $context->warn("Added gitignore rule: <info>$rule</info>");
+                $context->warn("Added <info>$rule</info> to <info>$path</info>");
             }
         }
     }
