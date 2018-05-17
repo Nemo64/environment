@@ -171,6 +171,8 @@ class ConfiguratorContainer
             $configSource = new JsonConfigSource($composerFile);
             $configSource->addProperty('extra', $extra);
         }
+
+        $context->info("environment configuration complete");
     }
 
     protected function createOptionResolver(ExecutionContext $context): OptionsResolver
